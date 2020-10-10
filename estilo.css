@@ -1,0 +1,27 @@
+@charset "utf-8";
+
+/* Cajetín donde se introduce el número */
+#pantalla {
+	-moz-box-shadow: 4px -4px 4px #000000;
+	-webkit-box-shadow: 4px -4px 4px #000000;
+	box-shadow: 4px -4px 4px #000000;
+}
+
+/* Texto para que se sepa la operación intermedia */
+#temp {
+	color: gray;
+	margin-left: 30px;
+	font-size: smaller;
+}
+
+/* todos los botones se realtan al pasar por encima */
+#cuadrado:hover, #modulo:hover, #factorial:hover, #suma:hover, #mul:hover, #resta:hover, #div:hover, #igual:hover,
+#sumatorio:hover, #ordenar:hover, #revertir:hover, #quitar:hover {
+	background-color: yellowgreen;
+}
+
+/*Cuerpo de la página */
+body {
+	padding:10px;
+	margin:10px;
+}

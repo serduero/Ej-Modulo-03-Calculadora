@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Calculadora</title>
+  <meta charset="utf-8">
+  <link href="estilo.css" rel="stylesheet" type="text/css">
+  <script type="text/javascript">
+    
+    // Variables globales
+    let x = 0, operador = undefined, antes_igual = false;
+
+    let vector = new Array;           // Vector de los valores introducidos (en número)
+    let resultado = 0;                // Para convertir a número los valores inroducidos
+    let numeros = ' 0123456789.+-';   // Valores posibles a introducir (sitácticamente)
+
+    //***** Función que valida un único número
+    function val_numero(num) {
+      // Validamos que un número sea OK:
+      // - que sólo contenga números, espacio, ., + o -
+      // - que sólo tenga un .
+      // - que si tiene + o - los tenga en la primera posición (o haya blancos antes)
+      // - los blancos estén sólo al inicio o al final, no en medio
+      let hay_error = false, hay_num = false, hay_blanco = false;
+      let i = 0, puntos = 0;
+
+      i = num.length;
+
+      while (!hay_error && --i >= 0) {
+        if (numeros.indexOf(num.charAt(i), 0) === -1) hay_error = true;
+        if (num.charAt(i) === '.')
+          if (++puntos > 1) hay_error = true;
+
+        if ((num.charAt(i) === '+' || num.charAt(i) === '-') &&
+          (i !== 0 && num.charAt(i - 1) !== ' ')) hay_error = true;
+
+        if (num.charAt(i) !== ' ' && !hay_num) hay_num = true;
+        if (num.charAt(i) === ' ' && hay_num && !hay_blanco) hay_blanco = true;
+        if (num.charAt(i) !== ' ' && hay_blanco) hay_error = true;
+      }
+      if (!hay_error) resultado = +num;
+
+      return hay_error;
+    }
+
+    //***** Función que valida todo el contenido del cajetín -- Invoca a la otra función para cada validación i-ésima
+    function validar(es_vector = false) {
+      let hay_error = false;
+      let elem = document.getElementById("pantalla");
+
+      resultado = 0;
+
+      if (elem.value.indexOf(',') === -1) {
+        // no hay comas en el campo, es sólo 1 elemento, lo validamos...
+
+        hay_error = val_numero(elem.value);         // La función retorna si es o no correcto
+        if (!hay_error) {
+          elem.value = +resultado;                  // Lo pasamos a número si es OK
+
+          vector.length = 1;
+          vector[0] = +resultado;
+        }
+      }
+      else {
+        // hay comas, por lo que será un vector separdo por comas
+
+        if (!es_vector) hay_error = true;           // Si no esperábamos un vector, entonces error...
+        else {
+          // validamos cada elemento del vector, si alguno es NOK, entonces error
+          vector = elem.value.split(',');
+
+          for (let i = vector.length - 1; i >= 0 && !hay_error; i--) {
+            hay_error = val_numero(vector[i]);
+            if (!hay_error) vector[i] = +resultado;
+          }
+
+          if (!hay_error) elem.value = vector.join(',');
+        }
+      }
+
+      if (hay_error) {
+        elem.value = 'Error';
+        return 0;
+      }
+      else return 1;
+    }
+
+    //***** Función que rellena el texto del h2, en función del resultado obtenido
+    function rellenar_info(opc = 0) {
+      let elem_h2 = document.querySelectorAll("#info");
+      let num = document.getElementById("pantalla");
+
+      if (opc === 1) {
+        elem_h2[0].innerHTML = 'Info sobre el número';
+      }
+      else {
+        switch (true) {
+          case +num.value < 100: elem_h2[0].innerHTML = 'Info: El resultado es menor que 100';
+            break;
+          case +num.value <= 200: elem_h2[0].innerHTML = 'Info: El resultado está entre 100 y 200';
+            break;
+          default: elem_h2[0].innerHTML = 'Info: El resultado es superior a 200';
+        }
+      }
+    }
+
+    //***** Para validar correctamente los números (1<10 y no al revés)
+    function sortEggsInNest(a, b) {
+      return a > b ? 1 : b > a ? -1 : 0;
+    }
+
+    //***** Vacía el cajetín
+    const vaciar = () => {
+      let adicional = document.querySelectorAll("#temp");
+
+      document.getElementById("pantalla").value = "";
+      if (antes_igual) adicional[0].innerHTML = '';
+
+      rellenar_info(1);
+      vector.length = 1;
+      vector[0] = 0;
+    }
+
+    //***** Acción del botón cuadrado
+    const cuadrado = () => {
+      let num = document.getElementById("pantalla");
+      let adicional = document.querySelectorAll("#temp");
+      antes_igual = false;
+
+      if (validar()) {
+        adicional[0].innerHTML = '';
+        num.value = num.value * num.value;
+
+        rellenar_info();
+      }
+    }
+
+    //***** Acción del módulo
+    const mod = () => {
+      let num = document.getElementById("pantalla");
+      let adicional = document.querySelectorAll("#temp");
+      antes_igual = false;
+
+      if (validar()) {
+        adicional[0].innerHTML = '';
+        if (num.value < 0) num.value = -num.value;
+
+        rellenar_info();
+      }
+    }
+
+    const factorial = () => {
+      let num = document.getElementById("pantalla");
+      let adicional = document.querySelectorAll("#temp");
+      antes_igual = false;
+
+      if (validar()) {
+        adicional[0].innerHTML = '';
+        if (+num.value < 0)
+          num.value = 'Número negativo';
+        else {
+          for (let i = num.value - 1; i > 1; i--) num.value *= i;
+          rellenar_info();
+        }
+      }
+    }
+
+    const add = () => {
+      let num = document.getElementById("pantalla");
+      let adicional = document.querySelectorAll("#temp");
+      antes_igual = false;
+
+      if (validar()) {
+        adicional[0].innerHTML = (resultado === 0) ? '0+' : num.value + '+';
+
+        x = +num.value;
+        operador = '+';
+
+        rellenar_info(1);
+      }
+    }
+
+    const mul = () => {
+      let num = document.getElementById("pantalla");
+      let adicional = document.querySelectorAll("#temp");
+      antes_igual = false;
+
+      if (validar()) {
+        adicional[0].innerHTML = (resultado === 0) ? '0*' : num.value + '*';
+
+        x = +num.value;
+        operador = '*';
+
+        rellenar_info(1);
+      }
+    }
+
+    const res = () => {
+      let num = document.getElementById("pantalla");
+      let adicional = document.querySelectorAll("#temp");
+      antes_igual = false;
+
+      if (validar()) {
+        adicional[0].innerHTML = (resultado === 0) ? '0-' : num.value + '-';
+
+        x = +num.value;
+        operador = '-';
+
+        rellenar_info(1);
+      }
+    }
+
+    const div = () => {
+      let num = document.getElementById("pantalla");
+      let adicional = document.querySelectorAll("#temp");
+      antes_igual = false;
+
+      if (validar()) {
+        adicional[0].innerHTML = (resultado === 0) ? '0/' : num.value + '/';
+
+        x = +num.value;
+        operador = '/';
+
+        rellenar_info(1);
+      }
+    }
+
+    const eq = () => {
+      let num = document.getElementById("pantalla");
+      let adicional = document.querySelectorAll("#temp");
+
+      if (antes_igual) adicional[0].innerHTML = '';
+
+      if (validar()) {
+        switch (operador) {
+          case '+': adicional[0].innerHTML = (resultado === 0) ? adicional[0].innerHTML + '0' : adicional[0].innerHTML + num.value;
+            num.value = +num.value + x; rellenar_info();
+            break;
+          case '*': adicional[0].innerHTML = (resultado === 0) ? adicional[0].innerHTML + '0' : adicional[0].innerHTML + num.value;
+            num.value = +num.value * x; rellenar_info();
+            break;
+          case '-': adicional[0].innerHTML = (resultado === 0) ? adicional[0].innerHTML + '0' : adicional[0].innerHTML + num.value;
+            num.value = x - +num.value; rellenar_info();
+            break;
+          case '/':
+            if (+num.value === 0) {
+              num.value = 'División por 0';
+              adicional[0].innerHTML = adicional[0].innerHTML + '0';
+            } else {
+              adicional[0].innerHTML = adicional[0].innerHTML + num.value;
+              num.value = x / +num.value; rellenar_info();
+            };
+          // Se podría poner este default: num.value = 'No ha indicado operador';
+        }
+        operador = undefined;
+        antes_igual = true;
+      }
+    }
+
+    const sumatorio = () => {
+      let cadena = document.getElementById("pantalla");
+      let adicional = document.querySelectorAll("#temp");
+
+      antes_igual = false;
+
+      if (validar(1)) {
+        x = +0;
+        for (let i = 0; i < vector.length; i++) {
+          x = x + vector[i];
+        }
+        cadena.value = x;
+
+        rellenar_info();
+        adicional[0].innerHTML = '';
+      }
+    }
+
+    const ordenar = () => {
+      let lista = document.getElementById("pantalla");
+      let adicional = document.querySelectorAll("#temp");
+      antes_igual = false;
+
+      if (validar(1)) {
+        vector = vector.sort(sortEggsInNest);
+
+        lista.value = vector.join(',');
+      }
+      adicional[0].innerHTML = '';
+      rellenar_info (1);
+    }
+
+    const revertir = () => {
+      let lista = document.getElementById("pantalla");
+      let adicional = document.querySelectorAll("#temp");
+      antes_igual = false;
+
+      if (validar(1)) {
+        vector = vector.reverse();
+
+        lista.value = vector.join(',');
+      }
+      adicional[0].innerHTML = '';
+      rellenar_info(1);
+    }
+
+    const quitar = () => {
+      let lista = document.getElementById("pantalla");
+      let adicional = document.querySelectorAll("#temp");
+      antes_igual = false;
+
+      if (validar(1)) {
+        vector.pop();
+
+        lista.value = vector.join(',');
+      }
+      adicional[0].innerHTML = '';
+      rellenar_info(1);
+    }
+  </script>
+</head>
+
+<body>
+  <h1>Calculadora Core</h1>
+
+  Número:
+  <input type="text" id="pantalla" onclick="vaciar()"><span id="temp"></span>
+
+  <h2 id="info" class="grande" title="Info sobre el número">
+    Info sobre el número</h2>
+
+  <h3>Operaciones unitarias</h3>
+
+  <button id="cuadrado" onclick="cuadrado()">x<sup>2</sup></button>
+  <button id="modulo" onclick="mod()">Mod</button>
+  <button id="factorial" onclick="factorial()">n!</button>
+
+  <h3>Operaciones binarias</h3>
+
+  <button id="suma" onclick="add()">+</button>
+  <button id="mul" onclick="mul()">*</button>
+  <button id="resta" onclick="res()">-</button>
+  <button id="div" onclick="div()">/</button>
+
+  <button id="igual" onclick="eq()">=</button>
+
+  <h3>Operaciones en formato CSV</h3>
+
+  <button id="sumatorio" onclick="sumatorio()">&Sigma;x</button>
+  <button id="ordenar" onclick="ordenar()">Ordenar</button>
+  <button id="revertir" onclick="revertir()">Revertir</button>
+  <button id="quitar" onclick="quitar()">Quitar</button>
+
+</body>
+
+</html>
